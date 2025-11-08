@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Always run (`build` will do nothing if there are no variables set)
+exit 0

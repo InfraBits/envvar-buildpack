@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+env | grep -E '^RUNTIME_ENVVAR_' 2> /dev/null || exit 0
+
+echo "-----> Runtime environment variables"
+
+env | grep -E '^RUNTIME_ENVVAR_' | cut -d= -f1 | while read source_var;
+do
+    target_var=${source_var#RUNTIME_ENVVAR_}
+    echo "Adding $target_var to the runtime environment"
+    echo "${target_var}=${source_var}" > "$LAUNCH_ENV_DIR/RUNTIME_ONLY_VAR"
+done
