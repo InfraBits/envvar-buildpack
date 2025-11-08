@@ -1,13 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
+layers_dir="$1"
 
-env | grep -E '^RUNTIME_ENVVAR_' 2> /dev/null || exit 0
+# Bail early if we have no variables to process
+env | grep -E '^RUNTIME_ENVVAR_' > /dev/null || exit 0
 
-echo "-----> Runtime environment variables"
+echo "-----> Runtime environment varsource_variables"
 
+our_layer_name="infrabits_envvar"
+our_layer_dir="${layers_dir}/${our_layer_name}"
+our_env_dir="${our_layer_dir}/env.launch/"
+
+mkdir -p "${our_layer_dir}" "${our_env_dir}"
+
+# Create an env file in our layer for each target
 env | grep -E '^RUNTIME_ENVVAR_' | cut -d= -f1 | while read source_var;
 do
     target_var=${source_var#RUNTIME_ENVVAR_}
     echo "Adding $target_var to the runtime environment"
-    echo "${target_var}=${source_var}" > "$LAUNCH_ENV_DIR/RUNTIME_ONLY_VAR"
+    echo "${!source_var}" > "${our_env_dir}/${target_var}"
 done
+
+# Create a config, so the files we created are accessible
+cat > "${layers_dir}/infrabits_envvar.toml" <<'EOF'
+[types]
+launch = true
+build = false
+cache = false
+EOF
